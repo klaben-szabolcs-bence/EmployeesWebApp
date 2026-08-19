@@ -1,0 +1,12 @@
+**/node_modules
+**/bin
+**/obj
+**/dist
+**/.angular
+**/App_Data
+.git
+.gitignore
+WebAPI/.vs
+docs
+deploy/compose.yaml
+*.md

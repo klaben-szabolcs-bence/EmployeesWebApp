@@ -1,0 +1,45 @@
+# Local development stack.
+#
+# Docker Compose and podman-compose both work. Under rootless podman note:
+#   - image names are fully qualified (podman does not assume docker.io)
+#   - bind mounts carry :z so SELinux allows the container to read them
+#   - reach published ports on 127.0.0.1, not localhost: localhost may resolve
+#     to ::1, which pasta does not forward, and you will get a connection reset
+#
+#   podman-compose -f deploy/compose.yaml up --build
+#
+# The API defaults to SQLite here so the stack comes up with no external
+# database. To develop against real MS-SQL instead, see docs/DEPLOYMENT.md.
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/api.Dockerfile
+    environment:
+      Database__Provider: Sqlite
+      ConnectionStrings__DefaultConnection: "Data Source=/data/employees.db;Default Timeout=5"
+      Storage__PhotosPath: /data/Photos
+      Cors__AllowedOrigins__0: http://localhost:4200
+      PORT: "8080"
+    ports:
+      - "5221:8080"
+    volumes:
+      - apidata:/data
+
+  web:
+    image: docker.io/library/node:18-bookworm
+    working_dir: /app
+    command: sh -c "npm ci && npx ng serve --host 0.0.0.0 --poll 2000"
+    ports:
+      - "4200:4200"
+    volumes:
+      - ../Frontend/EmployeesExampleWebApp:/app:z
+      # Keeps the container's install off the host tree.
+      - webmodules:/app/node_modules
+    depends_on:
+      - api
+
+volumes:
+  apidata:
+  webmodules:
