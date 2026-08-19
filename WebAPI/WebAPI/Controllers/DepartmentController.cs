@@ -1,9 +1,7 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using Microsoft.AspNetCore.Http;
+using System.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using WebAPI.Controllers.Models;
+using WebAPI.Data;
 
 namespace WebAPI.Controllers
 {
@@ -11,11 +9,11 @@ namespace WebAPI.Controllers
     [ApiController]
     public class DepartmentController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly IDbConnectionFactory _db;
 
-        public DepartmentController(IConfiguration config)
+        public DepartmentController(IDbConnectionFactory db)
         {
-            _config = config;
+            _db = db;
         }
 
         /// <summary>
@@ -25,90 +23,80 @@ namespace WebAPI.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            // Use the connection string from appsettings.json to connect to the database
-            var connectionString = _config.GetConnectionString("DefaultConnection");
+            using var connection = _db.CreateConnection();
+            using var command = connection.CreateCommand();
+            // Aliased deliberately: the column is DepartmentId but the Angular client
+            // reads DepartmentID. Because responses are DataTable serialised straight
+            // to JSON, the column name IS the wire contract -- the original SELECT *
+            // returned DepartmentId, so the client's id was silently undefined and
+            // delete sent /api/Department/undefined.
+            command.CommandText = "SELECT DepartmentId AS DepartmentID, DepartmentName FROM Department";
 
-            // Create an SqlConnection object
-            using var connection = new SqlConnection(connectionString);
-            // Create a SqlCommand object
-            using var command = new SqlCommand();
-            // Assign the connection to the command
-            command.Connection = connection;
-            command.CommandText = "SELECT * FROM Department";
-            // Open the connection
             connection.Open();
-            // Execute the command
-            var reader = command.ExecuteReader();
-            // Read the results into a DataTable
+            using var reader = command.ExecuteReader();
             var table = new DataTable();
             table.Load(reader);
-            // Close the reader
-            reader.Close();
-            // Close the connection
-            connection.Close();
-            // Return the DataTable as a JSON result
-            return new JsonResult(table);
+
+            return new JsonResult(table) { StatusCode = StatusCodes.Status200OK };
         }
 
         /// <summary>
-        /// Add new department
+        /// Create a department
         /// </summary>
-        /// <param name="department">Department to add</param>
+        /// <param name="department">Department to create</param>
         /// <returns>API result</returns>
         [HttpPost]
         public IActionResult Post(Department department)
         {
-            // Use the connection string from appsettings.json to connect to the database
-            var connectionString = _config.GetConnectionString("DefaultConnection");
-            // Create an SqlConnection object
-            using var connection = new SqlConnection(connectionString);
-            // Create a SqlCommand object
-            using var command = new SqlCommand();
-            // Assign the connection to the command
-            command.Connection = connection;
-            // Assign the INSERT command to the command object
-            command.CommandText = "INSERT INTO dbo.Department (DepartmentName) VALUES (@DepartmentName)";
-            // Add the parameters to the command object
-            command.Parameters.AddWithValue("@DepartmentName", department.DepartmentName);
-            // Open the connection
+            if (string.IsNullOrWhiteSpace(department.DepartmentName))
+            {
+                return BadRequest(new { Message = "DepartmentName is required" });
+            }
+
+            using var connection = _db.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = "INSERT INTO Department (DepartmentName) VALUES (@DepartmentName)";
+            command.AddParam("@DepartmentName", department.DepartmentName);
+
             connection.Open();
-            // Execute the INSERT command
             command.ExecuteNonQuery();
-            // Close the connection
-            connection.Close();
-            // Return JSON about success with 201 Created status code
-            return new JsonResult(new { Message = "Department created successfully" }) { StatusCode = 201 };
+
+            return new JsonResult(new { Message = "Department added successfully" })
+            { StatusCode = StatusCodes.Status201Created };
         }
 
         /// <summary>
-        /// Update department
+        /// Update a department
         /// </summary>
         /// <param name="department">Department to update</param>
         /// <returns>API result</returns>
         [HttpPut]
         public IActionResult Put(Department department)
         {
-            // Use the connection string from appsettings.json to connect to the database
-            var connectionString = _config.GetConnectionString("DefaultConnection");
-            // Create an SqlConnection object
-            using var connection = new SqlConnection(connectionString);
-            // Create a SqlCommand object
-            using var command = new SqlCommand();
-            // Assign the connection to the command
-            command.Connection = connection;
-            // Assign the UPDATE command to the command object
-            command.CommandText = "UPDATE dbo.Department SET DepartmentName = @DepartmentName WHERE DepartmentID = @DepartmentID";
-            // Add the parameters to the command object
-            command.Parameters.AddWithValue("@DepartmentName", department.DepartmentName);
-            command.Parameters.AddWithValue("@DepartmentID", department.DepartmentID);
-            // Open the connection
+            if (string.IsNullOrWhiteSpace(department.DepartmentName))
+            {
+                return BadRequest(new { Message = "DepartmentName is required" });
+            }
+
+            using var connection = _db.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText =
+                "UPDATE Department SET DepartmentName = @DepartmentName WHERE DepartmentId = @DepartmentId";
+            command.AddParam("@DepartmentName", department.DepartmentName);
+            command.AddParam("@DepartmentId", department.DepartmentID);
+
             connection.Open();
-            // Execute the UPDATE command
-            command.ExecuteNonQuery();
-            // Close the connection
-            connection.Close();
-            // Return JSON about success with 200 OK status code
-            return new JsonResult(new { Message = "Department updated successfully" }) { StatusCode = 200 };
+            // ExecuteNonQuery returns the rows affected; using it is what lets a
+            // missing id report 404 rather than a misleading success.
+            var affected = command.ExecuteNonQuery();
+
+            if (affected == 0)
+            {
+                return NotFound(new { Message = $"No department with id {department.DepartmentID}" });
+            }
+
+            return new JsonResult(new { Message = "Department updated successfully" })
+            { StatusCode = StatusCodes.Status200OK };
         }
 
         /// <summary>
@@ -119,26 +107,21 @@ namespace WebAPI.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            // Use the connection string from appsettings.json to connect to the database
-            var connectionString = _config.GetConnectionString("DefaultConnection");
-            // Create an SqlConnection object
-            using var connection = new SqlConnection(connectionString);
-            // Create a SqlCommand object
-            using var command = new SqlCommand();
-            // Assign the connection to the command
-            command.Connection = connection;
-            // Assign the DELETE command to the command object
-            command.CommandText = "DELETE FROM dbo.Department WHERE DepartmentID = @DepartmentID";
-            // Add the parameters to the command object
-            command.Parameters.AddWithValue("@DepartmentID", id);
-            // Open the connection
+            using var connection = _db.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = "DELETE FROM Department WHERE DepartmentId = @DepartmentId";
+            command.AddParam("@DepartmentId", id);
+
             connection.Open();
-            // Execute the DELETE command
-            command.ExecuteNonQuery();
-            // Close the connection
-            connection.Close();
-            // Return JSON about success with 200 OK status code
-            return new JsonResult(new { Message = "Department deleted successfully" }) { StatusCode = 200 };
+            var affected = command.ExecuteNonQuery();
+
+            if (affected == 0)
+            {
+                return NotFound(new { Message = $"No department with id {id}" });
+            }
+
+            return new JsonResult(new { Message = "Department deleted successfully" })
+            { StatusCode = StatusCodes.Status200OK };
         }
     }
 }

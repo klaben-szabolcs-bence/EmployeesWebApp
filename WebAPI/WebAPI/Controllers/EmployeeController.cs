@@ -1,10 +1,7 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Http;
+using System.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using WebAPI.Controllers.Models;
+using WebAPI.Data;
 
 namespace WebAPI.Controllers
 {
@@ -12,11 +9,19 @@ namespace WebAPI.Controllers
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        /// <summary>Extensions accepted for employee photos.</summary>
+        private static readonly string[] AllowedPhotoExtensions =
+            { ".png", ".jpg", ".jpeg", ".webp" };
 
-        public EmployeeController(IConfiguration config)
+        private const long MaxPhotoBytes = 2 * 1024 * 1024;
+
+        private readonly IDbConnectionFactory _db;
+        private readonly IStoragePaths _paths;
+
+        public EmployeeController(IDbConnectionFactory db, IStoragePaths paths)
         {
-            _config = config;
+            _db = db;
+            _paths = paths;
         }
 
         /// <summary>
@@ -26,78 +31,84 @@ namespace WebAPI.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var connectionString = _config.GetConnectionString("DefaultConnection");
-            using var connection = new SqlConnection(connectionString);
-            using var command = new SqlCommand();
-            
-            command.Connection = connection;
-            command.CommandText = "SELECT EmployeeId, EmployeeName, Department, " +
-                                  "convert(varchar(10),DateOfJoining,120) as DateOfJoining, " +
-                                  "PhotoFileName FROM dbo.Employee";
+            using var connection = _db.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText =
+                "SELECT EmployeeId, EmployeeName, Department, " +
+                $"{_db.DateAsIso("DateOfJoining")} AS DateOfJoining, " +
+                "PhotoFileName FROM Employee";
+
             connection.Open();
-            var reader = command.ExecuteReader();
+            using var reader = command.ExecuteReader();
             var table = new DataTable();
             table.Load(reader);
-            reader.Close();
-            connection.Close();
 
             return new JsonResult(table) { StatusCode = StatusCodes.Status200OK };
         }
 
         /// <summary>
-        /// Add new employee
+        /// Create an employee
         /// </summary>
         /// <param name="employee">Employee to create</param>
         /// <returns>API result</returns>
         [HttpPost]
         public IActionResult Post(Employee employee)
         {
-            var connectionString = _config.GetConnectionString("DefaultConnection");
-            using var connection = new SqlConnection(connectionString);
-            using var command = new SqlCommand();
-            
-            command.Connection = connection;
-            command.CommandText = "INSERT INTO dbo.Employee (EmployeeName, Department, DateOfJoining, PhotoFileName) " +
-                                  "VALUES (@Name, @Department, @DateOfJoining, @PhotoFileName)";
-            command.Parameters.AddWithValue("@Name", employee.EmployeeName);
-            command.Parameters.AddWithValue("@Department", employee.Department);
-            command.Parameters.AddWithValue("@DateOfJoining", employee.DateOfJoining);
-            command.Parameters.AddWithValue("@PhotoFileName", employee.PhotoFileName);
-            
+            if (string.IsNullOrWhiteSpace(employee.EmployeeName))
+            {
+                return BadRequest(new { Message = "EmployeeName is required" });
+            }
+
+            using var connection = _db.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText =
+                "INSERT INTO Employee (EmployeeName, Department, DateOfJoining, PhotoFileName) " +
+                "VALUES (@Name, @Department, @DateOfJoining, @PhotoFileName)";
+            command.AddParam("@Name", employee.EmployeeName);
+            command.AddParam("@Department", employee.Department);
+            command.AddParam("@DateOfJoining", employee.DateOfJoining);
+            command.AddParam("@PhotoFileName", employee.PhotoFileName);
+
             connection.Open();
             command.ExecuteNonQuery();
-            connection.Close();
-            
-            return new JsonResult(new { Message = "Employee created successfully" })
-                { StatusCode = StatusCodes.Status201Created };
+
+            return new JsonResult(new { Message = "Employee added successfully" })
+            { StatusCode = StatusCodes.Status201Created };
         }
 
         /// <summary>
-        /// Update employee
+        /// Update an employee
         /// </summary>
         /// <param name="employee">Employee to update</param>
         /// <returns>API result</returns>
         [HttpPut]
         public IActionResult Put(Employee employee)
         {
-            var connectionString = _config.GetConnectionString("DefaultConnection");
-            using var connection = new SqlConnection(connectionString);
-            using var command = new SqlCommand();
-            
-            command.Connection = connection;
-            command.CommandText = "UPDATE dbo.Employee SET EmployeeName = @Name, Department = @Department, " +
-                                  "DateOfJoining = @DateOfJoining, PhotoFileName = @PhotoFileName " +
-                                  "WHERE EmployeeId = @Id";
-            command.Parameters.AddWithValue("@Id", employee.EmployeeId);
-            command.Parameters.AddWithValue("@Name", employee.EmployeeName);
-            command.Parameters.AddWithValue("@Department", employee.Department);
-            command.Parameters.AddWithValue("@DateOfJoining", employee.DateOfJoining);
-            command.Parameters.AddWithValue("@PhotoFileName", employee.PhotoFileName);
-            
+            if (string.IsNullOrWhiteSpace(employee.EmployeeName))
+            {
+                return BadRequest(new { Message = "EmployeeName is required" });
+            }
+
+            using var connection = _db.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText =
+                "UPDATE Employee SET EmployeeName = @Name, Department = @Department, " +
+                "DateOfJoining = @DateOfJoining, PhotoFileName = @PhotoFileName " +
+                "WHERE EmployeeId = @Id";
+            command.AddParam("@Id", employee.EmployeeId);
+            command.AddParam("@Name", employee.EmployeeName);
+            command.AddParam("@Department", employee.Department);
+            command.AddParam("@DateOfJoining", employee.DateOfJoining);
+            command.AddParam("@PhotoFileName", employee.PhotoFileName);
+
             connection.Open();
-            command.ExecuteNonQuery();
-            connection.Close();
-            
+            var affected = command.ExecuteNonQuery();
+
+            if (affected == 0)
+            {
+                return NotFound(new { Message = $"No employee with id {employee.EmployeeId}" });
+            }
+
             return new JsonResult(new { Message = "Employee updated successfully" })
             { StatusCode = StatusCodes.Status200OK };
         }
@@ -110,53 +121,127 @@ namespace WebAPI.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var connectionString = _config.GetConnectionString("DefaultConnection");
-            using var connection = new SqlConnection(connectionString);
-            using var command = new SqlCommand();
-            
-            command.Connection = connection;
-            command.CommandText = "DELETE FROM dbo.Employee WHERE EmployeeId = @Id";
-            command.Parameters.AddWithValue("@Id", id);
-            
+            using var connection = _db.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = "DELETE FROM Employee WHERE EmployeeId = @Id";
+            command.AddParam("@Id", id);
+
             connection.Open();
-            command.ExecuteNonQuery();
-            connection.Close();
-            
+            var affected = command.ExecuteNonQuery();
+
+            if (affected == 0)
+            {
+                return NotFound(new { Message = $"No employee with id {id}" });
+            }
+
             return new JsonResult(new { Message = "Employee deleted successfully" })
             { StatusCode = StatusCodes.Status200OK };
         }
 
-        [Route("SaveFile")]
+        /// <summary>
+        /// Upload an employee photo
+        /// </summary>
+        /// <returns>API result, including the stored file name</returns>
         [HttpPost]
-        public JsonResult SaveFile()
+        [Route("SaveFile")]
+        [RequestSizeLimit(MaxPhotoBytes)]
+        public IActionResult SaveFile()
         {
+            if (Request.Form.Files.Count == 0)
+            {
+                // Previously indexed Files[0] unguarded, so an empty POST was a 500.
+                return BadRequest(new { Message = "No file was uploaded" });
+            }
+
             var file = Request.Form.Files[0];
-            var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName?.Trim('"');
-            if (fileName == null)
-                return new JsonResult(new { Message = "File name is null" }) { StatusCode = StatusCodes.Status400BadRequest };
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "Photos", fileName);
-            using var stream = new FileStream(path, FileMode.Create);
-            file.CopyTo(stream);
-            return new JsonResult(new { Message = "File uploaded successfully" })
+            if (file.Length == 0)
+            {
+                return BadRequest(new { Message = "Uploaded file is empty" });
+            }
+            if (file.Length > MaxPhotoBytes)
+            {
+                return BadRequest(new { Message = "File exceeds the 2 MB limit" });
+            }
+
+            var storedName = ResolveSafePhotoName(file.FileName);
+            if (storedName == null)
+            {
+                return BadRequest(new
+                {
+                    Message = "Unsupported file name or type. Allowed: " +
+                              string.Join(", ", AllowedPhotoExtensions)
+                });
+            }
+
+            var photosRoot = _paths.PhotosPath;
+            Directory.CreateDirectory(photosRoot);
+            var destination = Path.Combine(photosRoot, storedName);
+
+            // Defence in depth: storedName is generated, so this should always hold.
+            // If it ever does not, that is a bug in ResolveSafePhotoName and writing
+            // the file would be the wrong thing to do.
+            if (!Path.GetFullPath(destination).StartsWith(
+                    Path.GetFullPath(photosRoot) + Path.DirectorySeparatorChar,
+                    StringComparison.Ordinal))
+            {
+                return BadRequest(new { Message = "Rejected file name" });
+            }
+
+            using (var stream = new FileStream(destination, FileMode.Create))
+            {
+                file.CopyTo(stream);
+            }
+
+            return new JsonResult(new { Message = "File uploaded successfully", FileName = storedName })
             { StatusCode = StatusCodes.Status200OK };
         }
 
-        [Route("GetAllDepartmentNames")]
-        [HttpGet]
-        public JsonResult GetAllDepartmentNames()
+        /// <summary>
+        /// Turns a client-supplied file name into a safe name to store on disk,
+        /// or returns null to reject the upload.
+        /// </summary>
+        /// <remarks>
+        /// The client controls this string completely. The previous implementation
+        /// passed it to Path.Combine after stripping only quotes, which allowed
+        /// writing outside the photos directory.
+        /// </remarks>
+        private static string? ResolveSafePhotoName(string clientFileName)
         {
-            var connectionString = _config.GetConnectionString("DefaultConnection");
-            using var connection = new SqlConnection(connectionString);
-            using var command = new SqlCommand();
+            // TODO(human): implement.
+            //
+            // Given an arbitrary attacker-controlled `clientFileName`, return a file
+            // name that is safe to Path.Combine with the photos directory, or null
+            // to reject it.
+            //
+            // Worth working out before you write it:
+            //   1. Why is stripping ".." not sufficient?
+            //   2. What does Path.Combine("/app/Photos", "/etc/passwd") return?
+            //      (It is not what most people expect, and it is a separate bug
+            //       from "..".)
+            //   3. Allow-list or deny-list for the extension? AllowedPhotoExtensions
+            //      is declared at the top of this class.
+            //
+            // The shape that works: do not trust any part of the client's name except
+            // (a validated) extension. Generate the rest yourself.
+            throw new NotImplementedException("ResolveSafePhotoName is not implemented yet.");
+        }
 
-            command.Connection = connection;
-            command.CommandText = "SELECT DepartmentName FROM dbo.Department";
+        /// <summary>
+        /// List all department names, for the employee form's dropdown
+        /// </summary>
+        /// <returns>API result</returns>
+        [HttpGet]
+        [Route("GetAllDepartmentNames")]
+        public IActionResult GetAllDepartmentNames()
+        {
+            using var connection = _db.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT DepartmentName FROM Department";
+
             connection.Open();
-            var reader = command.ExecuteReader();
+            using var reader = command.ExecuteReader();
             var table = new DataTable();
             table.Load(reader);
-            reader.Close();
-            connection.Close();
 
             return new JsonResult(table) { StatusCode = StatusCodes.Status200OK };
         }
