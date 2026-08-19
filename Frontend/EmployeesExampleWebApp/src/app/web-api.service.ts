@@ -4,15 +4,15 @@ import { map, Observable } from 'rxjs';
 import { Department } from './models/department';
 import { Employee } from './models/employee';
 import { Message } from './models/message';
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WebAPIService {
 
-  readonly port = 5000;
-  readonly rootURL = `http://localhost:${this.port}/api`;
-  readonly photoURL = `http://localhost:${this.port}/Photos/`;
+  readonly rootURL = `${environment.apiBaseUrl}/api`;
+  readonly photoURL = `${environment.apiBaseUrl}/Photos/`;
 
   constructor(private http: HttpClient) { }
 

@@ -7,8 +7,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'Employees Example Web App';
-  subtitle = 'Employee Managment Portal';
+  title = 'Employee Directory';
+  subtitle = 'Employee Management Portal';
   subsubtitle = 'MS-SQL + ASP.NET Core + Angular';
 
   constructor(public router: Router) { }

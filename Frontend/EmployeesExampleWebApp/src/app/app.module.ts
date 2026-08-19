@@ -9,7 +9,6 @@ import { AddEditDepartmentComponent } from './department/add-edit/add-edit.compo
 import { EmployeeComponent } from './employee/employee.component';
 import { ShowEmployeeComponent } from './employee/show/show.component';
 import { AddEditEmployeeComponent } from './employee/add-edit/add-edit.component';
-import { WebAPIService } from './web-api.service';
 
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -34,7 +33,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     ReactiveFormsModule,
     NgbModule
   ],
-  providers: [WebAPIService],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
