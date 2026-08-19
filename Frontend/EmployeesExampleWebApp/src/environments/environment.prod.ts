@@ -6,5 +6,5 @@ export const environment: AppEnvironment = {
   // Our own subdomain, not the host's URL. The API can move between hosts by
   // repointing the CNAME, and the client does not need a rebuild for that.
   // Verify with: grep -r "localhost" dist/ -- it must return nothing.
-  apiBaseUrl: 'https://api.klaben.hu'
+  apiBaseUrl: 'https://employees-api.klaben.hu'
 };

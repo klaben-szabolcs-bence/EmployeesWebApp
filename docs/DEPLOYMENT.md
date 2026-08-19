@@ -71,9 +71,18 @@ Any host that runs a container works. Render is the path of least resistance
 - Dockerfile: `deploy/api.Dockerfile`, build context the repository root
 - The API binds `0.0.0.0` on `$PORT`, which the host injects
 
-The client is built against `https://api.klaben.hu`, not the host's own URL, so
-point that name at whatever host you end up using with a CNAME. This is the
-reason the API can move later without rebuilding and redeploying the frontend.
+The client is built against `https://employees-api.klaben.hu`, not the host's
+own URL, so point that name at whatever host you end up using with a CNAME. This
+is the reason the API can move later without rebuilding and redeploying the
+frontend.
+
+The hostname carries the project name on purpose. `api.klaben.hu` would claim the
+generic name for whichever project got there first, and the next project's API
+would have nowhere natural to go. The pattern is `<project>.klaben.hu` for the
+client and `<project>-api.klaben.hu` for its API. Both stay one level deep, which
+matters: Cloudflare's Universal SSL covers `klaben.hu` and `*.klaben.hu` only, so
+a nested `api.<project>.klaben.hu` would need the paid certificate add-on as soon
+as it is proxied.
 
 Environment variables:
 
@@ -87,7 +96,8 @@ Leave `Cors__AllowedOrigins__0` until step 3.
 
 ### 2. Frontend
 
-`src/environments/environment.prod.ts` already points at `https://api.klaben.hu`,
+`src/environments/environment.prod.ts` already points at
+`https://employees-api.klaben.hu`,
 so this step does not wait for the API. Point Cloudflare Pages at the repository:
 
 | Setting | Value |
@@ -177,7 +187,7 @@ not apply anymore, the project is on Angular 21.
 - [x] Cold-start note in the README
 - [ ] Cloudflare root directory is `Frontend/EmployeesExampleWebApp`
 - [ ] `employees.klaben.hu` added as a custom domain on the Pages project
-- [ ] API deployed, `api.klaben.hu` CNAME pointing at it
+- [ ] API deployed, `employees-api.klaben.hu` CNAME pointing at it
 - [ ] `Cors__AllowedOrigins__0` set to `https://employees.klaben.hu`
 - [ ] Live URL in the README and the repository's About sidebar
 
