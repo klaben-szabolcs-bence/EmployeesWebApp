@@ -190,7 +190,7 @@ not apply anymore, the project is on Angular 21.
 - [x] API deployed, `employees-api.klaben.hu` CNAME pointing at it
 - [x] `Cors__AllowedOrigins__0` set to `https://employees.klaben.hu`
 - [x] Live URL in the README
-- [ ] Live URL in the repository's About sidebar
+- [X] Live URL in the repository's About sidebar
 
 ## Verify before relying on this
 
