@@ -1,0 +1,33 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+dist/
+.angular/
+
+# Dependencies
+node_modules/
+
+# IDE / editor state
+.vs/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.idea/
+
+# Local configuration
+.env
+.env.local
+appsettings.*.local.json
+
+# SQLite demo database
+*.db
+*.db-shm
+*.db-wal
+data/
+
+# OS
+.DS_Store
+Thumbs.db
