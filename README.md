@@ -133,8 +133,8 @@ The remaining 23 cannot be fixed from here:
   the only findings that reach the browser, but nothing in `src/` uses
   `innerHTML`, `bypassSecurityTrust` or `$localize` in a template.
 - `image-size`, `ip` — no released version fixes the advisory.
-- `esbuild`, `uuid`, `webpack-dev-server` — moderate, dev server only, and the
-  fix needs the Angular 21 builder.
+- `esbuild`, `uuid` — moderate, build time only, and the fix needs the Angular
+  21 builder.
 
 Worth knowing if you see the same pattern: Dependabot proposed doing this by
 raising `@angular-devkit/build-angular` from 14 to 21 while leaving Angular
