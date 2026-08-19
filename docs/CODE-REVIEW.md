@@ -1,6 +1,6 @@
 # Code review — August 2026
 
-A review of this project as it stood when it was unarchived, roughly four years
+A review of this project as it stood when it was unarchived, roughly three years
 after it was written. It was built by following a YouTube tutorial while
 learning ASP.NET Core and Angular, and it is reviewed here as what it is: a
 learning project, judged against what I would expect of myself now.
@@ -122,7 +122,7 @@ separators. Run as written in sqlcmd or SSMS it fails.
 ## Left alone, deliberately
 
 These are the interesting ones. They are design decisions rather than defects,
-and changing them would turn a finished 2022 project into a 2026 rewrite.
+and changing them would turn a finished 2023 project into a 2026 rewrite.
 
 ### Returning `DataTable` straight to JSON
 
