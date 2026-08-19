@@ -22,7 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Photos\" />
+    <!-- Placeholder avatar. Must be published: the startup initializer copies it
+         into the (possibly empty, possibly ephemeral) photos directory so seeded
+         rows render an image rather than a broken one. -->
+    <Content Include="Photos\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
