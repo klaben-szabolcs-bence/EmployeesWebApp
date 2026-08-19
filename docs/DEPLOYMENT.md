@@ -119,18 +119,28 @@ Three things that will otherwise cost an afternoon:
 - `src/_redirects` is already registered as a build asset. Without it every
   deep link 404s on refresh.
 
-The project also has build watch paths set, so a commit that only touches the
-API or the docs does not rebuild the frontend. Excludes, not includes, so a path
-I forget only costs a wasted build instead of a change that never deploys:
+The project has build watch paths set:
 
 ```
 includes: *
 excludes: WebAPI/*, docs/*, deploy/*, *.sql, README.md
 ```
 
+**These only affect preview deployments.** I assumed they cover the production
+branch too and tested it: a commit touching nothing but `docs/DEPLOYMENT.md`,
+which matches `docs/*`, still built and deployed production. The API field
+descriptions say "preview deployment" and they mean it literally. The watch
+paths are still worth having, because preview deployments are set to build on
+every branch.
+
+To skip a production build, put a flag at the front of the commit message.
+`[CI Skip]`, `[CI-Skip]`, `[Skip CI]`, `[Skip-CI]` and `[CF-Pages-Skip]` all
+work, and they are not case sensitive. It is per commit, so there is no way to
+configure "never build for API-only changes" on the production branch.
+
 In Pages a single `*` also matches the path separator, so `WebAPI/*` covers any
-depth and there is no `**`. Render has the same thing under Build Filters, with
-the list inverted: it ignores `Frontend/**` and `docs/**`.
+depth and there is no `**`. Render is the one with a real blacklist: its Build
+Filters do apply to normal deploys, and it ignores `Frontend/**` and `docs/**`.
 
 ### 3. Close the loop
 
