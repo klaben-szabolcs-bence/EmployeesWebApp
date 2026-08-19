@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-employee',
+  standalone: false,
   templateUrl: './employee.component.html',
   styleUrls: ['./employee.component.css']
 })

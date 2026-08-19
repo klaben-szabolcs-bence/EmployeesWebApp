@@ -188,9 +188,10 @@ and independently testable.
 
 ### There are no tests
 
-The infrastructure is entirely present and entirely inert: `karma.conf.js`,
-`tsconfig.spec.json`, and a `src/test.ts` that globs `./**/*.spec.ts` and
-matches nothing. `npm test` launches Chrome and runs zero specs. There is no
+The infrastructure was entirely present and entirely inert: `karma.conf.js`,
+`tsconfig.spec.json`, and a `src/test.ts` that globbed `./**/*.spec.ts` and
+matched nothing. `npm test` launched Chrome and ran zero specs. Those files went
+away with the Angular 22 upgrade, but there are still no specs, and there is no
 .NET test project.
 
 The honest reason nothing was ever tested is that there was no seam to test
@@ -215,12 +216,12 @@ This does have one upside worth noting: because the format was already ISO
 everywhere, making the query portable between SQL Server and SQLite needed only
 a small dialect helper rather than a second set of queries.
 
-### Angular 14 is out of support
+### Angular 14 is out of support — fixed
 
-EOL November 2023. Upgrading is seven major versions and would rewrite most of
-the application, so the framework is pinned and its remaining advisories are
-accepted. Dependabot's build-time advisories are patched via npm `overrides`
-without touching the toolchain — see the README.
+EOL November 2023. First the build-time advisories were patched with npm
+`overrides`, which took the tree from 79 flagged packages to 23. The last 13
+were XSS advisories in Angular itself with no patch for v14, so the app was
+upgraded to Angular 22 and `npm audit` is clean now. See the README.
 
 ### Comments that restate the code
 

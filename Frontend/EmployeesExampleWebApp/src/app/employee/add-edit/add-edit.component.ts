@@ -1,11 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Department } from 'src/app/models/department';
-import { WebAPIService } from 'src/app/web-api.service';
+import { Department } from '../../models/department';
+import { WebAPIService } from '../../web-api.service';
 import { ShowEmployeeComponent } from '../show/show.component';
 
 
 @Component({
   selector: 'app-add-edit-employee',
+  standalone: false,
   templateUrl: './add-edit.component.html',
   styleUrls: ['./add-edit.component.css']
 })

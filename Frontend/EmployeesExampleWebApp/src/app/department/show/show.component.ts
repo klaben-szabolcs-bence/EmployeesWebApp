@@ -1,12 +1,13 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Department } from 'src/app/models/department';
-import { WebAPIService } from 'src/app/web-api.service';
+import { Department } from '../../models/department';
+import { WebAPIService } from '../../web-api.service';
 import { NgbModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-show-department',
+  standalone: false,
   templateUrl: './show.component.html',
   styleUrls: ['./show.component.css']
 })

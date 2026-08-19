@@ -91,7 +91,7 @@ Cloudflare Pages at the repository:
 | Root directory | `Frontend/EmployeesExampleWebApp` |
 | Build command | `npm ci && npm run build` |
 | Output directory | `dist/employees-example-web-app` |
-| `NODE_VERSION` | `20.20.2` |
+| `NODE_VERSION` | `22.23.2` |
 
 Three things that will otherwise cost an afternoon:
 
@@ -154,18 +154,11 @@ run `schema.sql`, then set `Database:Provider` to `SqlServer` and point
 
 ### A note on Node
 
-The project builds on Node 22 despite Angular 14 reporting it as "Unsupported" —
-the CLI's version gate only rejects Node below 14.15 and the 15.x/early-16.x
-range, and warns on odd-numbered releases. Node 22 is neither, so it passes. The
-`ERR_OSSL_EVP_UNSUPPORTED` / `--openssl-legacy-provider` workaround often
-suggested for old Angular does **not** apply here: Angular 14's builder already
-pins webpack's hash function to `xxhash64`.
+Angular 22 declares `^22.22.3 || ^24.15.0 || >=26`, so Node 18 and 20 are both
+too old. Compose and the Cloudflare build image are both on Node 22.
 
-Cloudflare's build image is pinned to Node 20, not 18. The security overrides
-pull in packages that need `engines.node >= 20`, and on Node 18 the build stops
-with `crypto is not defined` before it writes anything. Node 20 is the lowest
-version that still builds. Node 22 also works, but 20 is the safer choice for a
-build nobody watches.
+Older notes about `--openssl-legacy-provider` and the Angular 14 version gate do
+not apply anymore, the project is on Angular 22.
 
 ## Checklist
 

@@ -1,12 +1,13 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Employee } from 'src/app/models/employee';
-import { WebAPIService } from 'src/app/web-api.service';
+import { Employee } from '../../models/employee';
+import { WebAPIService } from '../../web-api.service';
 import { NgbModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-show-employee',
+  standalone: false,
   templateUrl: './show.component.html',
   styleUrls: ['./show.component.css']
 })

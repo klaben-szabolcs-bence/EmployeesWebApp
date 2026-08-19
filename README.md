@@ -111,37 +111,35 @@ schema.sqlite.sql       SQLite schema (demo, with the constraints added)
 
 ## Dependencies
 
-The frontend is pinned to Angular 14, which is out of support. Upgrading it is
-seven major versions, so instead the packages Dependabot flags are pinned to
-fixed versions with npm `overrides`, without touching the Angular toolchain.
-This brings the tree from 79 flagged packages to 23, and both criticals
-(`webpack`, `tar`) are gone.
+The frontend is on Angular 22 and `npm audit` reports 0 vulnerabilities.
 
-I did not just trust the version numbers. Every override was checked with a
-production build, and then the built bundle was opened in headless Chromium to
-see that the app still starts. The bundle hash did not change, which is
-expected, because all of these are build-time packages only.
+It used to be on Angular 14, which is out of support. First I tried to patch
+only the flagged transitive packages with npm `overrides`, and that got the tree
+from 79 flagged packages to 23. But the last 13 were the XSS advisories in
+`@angular/core`, `@angular/common` and `@angular/compiler` themselves, and for
+v14 there is no patch, so in the end the upgrade was the only way.
 
-`piscina`, `serialize-javascript` and `minimatch` need Node 20. On Node 18 the
-build stops with `crypto is not defined`, so compose and the Cloudflare pin use
-Node 20 now — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+The client is small, 812 lines, so the jump from 14 to 22 was mostly config:
 
-The remaining 23 cannot be fixed from here:
+- builder is `@angular/build:application` now, not
+  `@angular-devkit/build-angular:browser`
+- `polyfills.ts` is gone, `zone.js` and `@angular/localize/init` are listed in
+  `angular.json` instead
+- components declared in an NgModule need `standalone: false`, because since v19
+  standalone is the default
+- `platformBrowserDynamic()` became `platformBrowser()`
+- TypeScript 6 deprecates `baseUrl`, so the `src/app/...` imports were rewritten
+  to relative paths
+- karma is replaced by the new `ng test`, but there are no spec files anyway
 
-- `@angular/core`, `@angular/common`, `@angular/compiler` — XSS advisories with
-  no patch for v14, and npm cannot install v22 next to the v14 peers. These are
-  the only findings that reach the browser, but nothing in `src/` uses
-  `innerHTML`, `bypassSecurityTrust` or `$localize` in a template.
-- `image-size`, `ip` — no released version fixes the advisory.
-- `esbuild`, `uuid` — moderate, build time only, and the fix needs the Angular
-  21 builder.
+The app still uses NgModules, I did not convert it to standalone components.
+That is a bigger change and it was not needed for the upgrade. The cost is
+bundle size: it went from 507 kB to 628 kB, so the 500 kB budget warning is
+louder than before. Standalone components with zoneless change detection would
+bring it back down, that is the next step if it matters.
 
-Worth knowing if you see the same pattern: Dependabot proposed doing this by
-raising `@angular-devkit/build-angular` from 14 to 21 while leaving Angular
-itself at 14. That combination can't install at all — the v21 builder
-peer-requires Angular 21 and TypeScript 5.9 — so it fails `npm ci` before a
-build is even attempted. Overriding the transitive dependency directly is the
-smaller and safer fix.
+Angular 22 needs Node `^22.22.3 || ^24.15.0 || >=26`, so compose and the
+Cloudflare pin are on Node 22, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
