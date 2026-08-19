@@ -127,7 +127,10 @@ Under rootless podman on Fedora/Bazzite:
 
 - Reach published ports on **`127.0.0.1`, not `localhost`.** `localhost` may
   resolve to `::1`, which pasta does not forward, and you get a connection reset
-  from a container that is working perfectly.
+  from a container that is working perfectly. This is why
+  `environment.ts` points the dev build at `http://127.0.0.1:5221` — with
+  `localhost` there, the browser cannot reach a containerised API at all, and
+  the app loads but shows empty tables.
 - Bind mounts need `:z` so SELinux permits them. Already set in `compose.yaml`.
 - Image names are fully qualified, since podman does not assume `docker.io`.
 - Podman 5 shells out to an external compose provider. If you have none,

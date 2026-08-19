@@ -21,6 +21,7 @@ services:
       ConnectionStrings__DefaultConnection: "Data Source=/data/employees.db;Default Timeout=5"
       Storage__PhotosPath: /data/Photos
       Cors__AllowedOrigins__0: http://localhost:4200
+      Cors__AllowedOrigins__1: http://127.0.0.1:4200
       PORT: "8080"
     ports:
       - "5221:8080"

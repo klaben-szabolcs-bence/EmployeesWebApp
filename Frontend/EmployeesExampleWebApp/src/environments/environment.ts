@@ -7,8 +7,9 @@ import { AppEnvironment } from './environment.model';
 export const environment: AppEnvironment = {
   production: false,
 
-  // Matches the API's launchSettings.json profile.
-  apiBaseUrl: 'http://localhost:5221'
+  // 127.0.0.1 rather than localhost: on hosts where localhost resolves to ::1,
+  // a containerised API published by rootless podman is not reachable over IPv6.
+  apiBaseUrl: 'http://127.0.0.1:5221'
 };
 
 /*
