@@ -29,7 +29,9 @@ services:
       - apidata:/data
 
   web:
-    image: docker.io/library/node:18-bookworm
+    # Node 20, not 18: the security overrides need engines.node >= 20, and on
+    # Node 18 the build fails with "crypto is not defined".
+    image: docker.io/library/node:20-bookworm
     working_dir: /app
     command: sh -c "npm ci && npx ng serve --host 0.0.0.0 --poll 2000"
     ports:

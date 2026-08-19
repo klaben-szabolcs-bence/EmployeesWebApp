@@ -91,7 +91,7 @@ Cloudflare Pages at the repository:
 | Root directory | `Frontend/EmployeesExampleWebApp` |
 | Build command | `npm ci && npm run build` |
 | Output directory | `dist/employees-example-web-app` |
-| `NODE_VERSION` | `18.20.8` |
+| `NODE_VERSION` | `20.20.2` |
 
 Three things that will otherwise cost an afternoon:
 
@@ -161,8 +161,11 @@ range, and warns on odd-numbered releases. Node 22 is neither, so it passes. The
 suggested for old Angular does **not** apply here: Angular 14's builder already
 pins webpack's hash function to `xxhash64`.
 
-Cloudflare's build image is pinned to Node 18 anyway, as the conservative
-choice for a build nobody watches.
+Cloudflare's build image is pinned to Node 20, not 18. The security overrides
+pull in packages that need `engines.node >= 20`, and on Node 18 the build stops
+with `crypto is not defined` before it writes anything. Node 20 is the lowest
+version that still builds. Node 22 also works, but 20 is the safer choice for a
+build nobody watches.
 
 ## Checklist
 

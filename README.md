@@ -111,11 +111,30 @@ schema.sqlite.sql       SQLite schema (demo, with the constraints added)
 
 ## Dependencies
 
-The frontend is pinned to Angular 14, which is out of support. Upgrading is
-seven major versions and would rewrite most of the client, so instead the
-build-time advisories Dependabot reports are patched with npm `overrides` —
-postcss, immutable, brace-expansion, socket.io and js-yaml are all pulled to
-patched versions without touching the Angular toolchain.
+The frontend is pinned to Angular 14, which is out of support. Upgrading it is
+seven major versions, so instead the packages Dependabot flags are pinned to
+fixed versions with npm `overrides`, without touching the Angular toolchain.
+This brings the tree from 79 flagged packages to 23, and both criticals
+(`webpack`, `tar`) are gone.
+
+I did not just trust the version numbers. Every override was checked with a
+production build, and then the built bundle was opened in headless Chromium to
+see that the app still starts. The bundle hash did not change, which is
+expected, because all of these are build-time packages only.
+
+`piscina`, `serialize-javascript` and `minimatch` need Node 20. On Node 18 the
+build stops with `crypto is not defined`, so compose and the Cloudflare pin use
+Node 20 now — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+The remaining 23 cannot be fixed from here:
+
+- `@angular/core`, `@angular/common`, `@angular/compiler` — XSS advisories with
+  no patch for v14, and npm cannot install v22 next to the v14 peers. These are
+  the only findings that reach the browser, but nothing in `src/` uses
+  `innerHTML`, `bypassSecurityTrust` or `$localize` in a template.
+- `image-size`, `ip` — no released version fixes the advisory.
+- `esbuild`, `uuid`, `webpack-dev-server` — moderate, dev server only, and the
+  fix needs the Angular 21 builder.
 
 Worth knowing if you see the same pattern: Dependabot proposed doing this by
 raising `@angular-devkit/build-angular` from 14 to 21 while leaving Angular
