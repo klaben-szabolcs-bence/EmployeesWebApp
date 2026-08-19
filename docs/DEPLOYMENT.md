@@ -143,11 +143,6 @@ deployment", which suggests production is unaffected. On this project it does
 affect production, verified on 19 August 2026 with a docs-only commit that never
 built.
 
-There are also commit message flags for skipping a single build, `[CI Skip]`,
-`[CI-Skip]`, `[Skip CI]`, `[Skip-CI]` and `[CF-Pages-Skip]`, not case sensitive.
-I have not actually verified those here: the commit I tried them on was
-docs-only, so the watch paths would have skipped it anyway.
-
 Render has the same feature under Build Filters, with the list inverted: it
 ignores `Frontend/**` and `docs/**`.
 
