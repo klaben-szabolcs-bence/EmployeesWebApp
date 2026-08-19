@@ -71,6 +71,10 @@ Any host that runs a container works. Render is the path of least resistance
 - Dockerfile: `deploy/api.Dockerfile`, build context the repository root
 - The API binds `0.0.0.0` on `$PORT`, which the host injects
 
+The client is built against `https://api.klaben.hu`, not the host's own URL, so
+point that name at whatever host you end up using with a CNAME. This is the
+reason the API can move later without rebuilding and redeploying the frontend.
+
 Environment variables:
 
 ```
@@ -83,30 +87,35 @@ Leave `Cors__AllowedOrigins__0` until step 3.
 
 ### 2. Frontend
 
-Put the API's URL in `src/environments/environment.prod.ts`, commit, then point
-Cloudflare Pages at the repository:
+`src/environments/environment.prod.ts` already points at `https://api.klaben.hu`,
+so this step does not wait for the API. Point Cloudflare Pages at the repository:
 
 | Setting | Value |
 |---|---|
 | Root directory | `Frontend/EmployeesExampleWebApp` |
 | Build command | `npm ci && npm run build` |
 | Output directory | `dist/employees-example-web-app` |
-| `NODE_VERSION` | `22.23.2` |
+| Custom domain | `employees.klaben.hu` |
+| `NODE_VERSION` | `22.23.2` (or rely on `.node-version`) |
 
 Three things that will otherwise cost an afternoon:
 
 - **Set the root directory precisely.** Pointing it at `Frontend` finds a
   different, near-empty project and "succeeds" while producing nothing.
-- **Pin the Node version explicitly.** The current build image ignores
-  `engines` in `package.json` and rejects codenames like `lts/hydrogen`.
-  A literal version, or a `.node-version` file in the root directory.
+- **Pin the Node version explicitly.** The build image ignores `engines` in
+  `package.json` and rejects codenames like `lts/hydrogen`. There is a
+  `.node-version` file in the root directory now, which keeps the version in
+  git instead of only in the dashboard. Angular 22 needs at least 22.22.3.
 - `src/_redirects` is already registered as a build asset. Without it every
   deep link 404s on refresh.
 
 ### 3. Close the loop
 
-Add the resulting `https://<project>.pages.dev` to the API as
-`Cors__AllowedOrigins__0` and let it redeploy.
+Add `https://employees.klaben.hu` to the API as `Cors__AllowedOrigins__0` and
+let it redeploy. Use the custom domain, not the `.pages.dev` one — CORS compares
+the browser's `Origin` header literally, and the browser sends whichever host
+the user typed. Add the `.pages.dev` URL as `Cors__AllowedOrigins__1` if you
+want that one to keep working too.
 
 Preview deployments get their own per-deployment subdomain, which a fixed
 allow-list will not match. Either accept that previews cannot reach the API, or
@@ -162,13 +171,15 @@ not apply anymore, the project is on Angular 22.
 
 ## Checklist
 
-- [ ] `podman build -f deploy/api.Dockerfile .` from a clean clone
-- [ ] `grep -r "localhost" dist/` after a production build returns nothing
+- [x] `podman build -f deploy/api.Dockerfile .` from a clean clone
+- [x] `grep -r "localhost" dist/` after a production build returns nothing
+- [x] `NODE_VERSION` pinned (`.node-version`, 22.23.2)
+- [x] Cold-start note in the README
 - [ ] Cloudflare root directory is `Frontend/EmployeesExampleWebApp`
-- [ ] `NODE_VERSION` pinned
-- [ ] `Cors__AllowedOrigins__0` set to the Pages origin
-- [ ] Cold-start note in the README
-- [ ] Live URL in the repository's About sidebar
+- [ ] `employees.klaben.hu` added as a custom domain on the Pages project
+- [ ] API deployed, `api.klaben.hu` CNAME pointing at it
+- [ ] `Cors__AllowedOrigins__0` set to `https://employees.klaben.hu`
+- [ ] Live URL in the README and the repository's About sidebar
 
 ## Verify before relying on this
 

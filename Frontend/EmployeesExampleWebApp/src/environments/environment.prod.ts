@@ -3,7 +3,8 @@ import { AppEnvironment } from './environment.model';
 export const environment: AppEnvironment = {
   production: true,
 
-  // Set to the deployed API origin before building for production.
+  // Our own subdomain, not the host's URL. The API can move between hosts by
+  // repointing the CNAME, and the client does not need a rebuild for that.
   // Verify with: grep -r "localhost" dist/ -- it must return nothing.
-  apiBaseUrl: 'https://REPLACE-ME.onrender.com'
+  apiBaseUrl: 'https://api.klaben.hu'
 };
