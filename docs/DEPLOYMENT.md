@@ -105,7 +105,7 @@ Three things that will otherwise cost an afternoon:
 - **Pin the Node version explicitly.** The build image ignores `engines` in
   `package.json` and rejects codenames like `lts/hydrogen`. There is a
   `.node-version` file in the root directory now, which keeps the version in
-  git instead of only in the dashboard. Angular 22 needs at least 22.22.3.
+  git instead of only in the dashboard. Angular 21 needs Node 20.19+ or 22.12+.
 - `src/_redirects` is already registered as a build asset. Without it every
   deep link 404s on refresh.
 
@@ -163,11 +163,11 @@ run `schema.sql`, then set `Database:Provider` to `SqlServer` and point
 
 ### A note on Node
 
-Angular 22 declares `^22.22.3 || ^24.15.0 || >=26`, so Node 18 and 20 are both
-too old. Compose and the Cloudflare build image are both on Node 22.
+Angular 21 declares `^20.19.0 || ^22.12.0 || >=24`, so Node 18 is too old.
+Compose and the Cloudflare build image are both on Node 22.
 
 Older notes about `--openssl-legacy-provider` and the Angular 14 version gate do
-not apply anymore, the project is on Angular 22.
+not apply anymore, the project is on Angular 21.
 
 ## Checklist
 

@@ -1,12 +1,14 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Department } from '../../models/department';
 import { WebAPIService } from '../../web-api.service';
-import { ShowDepartmentComponent } from '../show/show.component';
+import type { ShowDepartmentComponent } from '../show/show.component';
 
 
 @Component({
   selector: 'app-add-edit-department',
-  standalone: false,
+  imports: [CommonModule, FormsModule],
   templateUrl: './add-edit.component.html',
   styleUrls: ['./add-edit.component.css']
 })

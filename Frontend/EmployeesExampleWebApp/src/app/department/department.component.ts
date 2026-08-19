@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { ShowDepartmentComponent } from './show/show.component';
 
 @Component({
   selector: 'app-department',
-  standalone: false,
+  imports: [ShowDepartmentComponent],
   templateUrl: './department.component.html',
   styleUrls: ['./department.component.css']
 })

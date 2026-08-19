@@ -1,4 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AddEditEmployeeComponent } from '../add-edit/add-edit.component';
 import { Employee } from '../../models/employee';
 import { WebAPIService } from '../../web-api.service';
 import { NgbModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
@@ -7,7 +9,7 @@ import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-show-employee',
-  standalone: false,
+  imports: [CommonModule, NgbAlert, AddEditEmployeeComponent],
   templateUrl: './show.component.html',
   styleUrls: ['./show.component.css']
 })

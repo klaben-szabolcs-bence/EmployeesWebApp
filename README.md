@@ -111,7 +111,7 @@ schema.sqlite.sql       SQLite schema (demo, with the constraints added)
 
 ## Dependencies
 
-The frontend is on Angular 22 and `npm audit` reports 0 vulnerabilities.
+The frontend is on Angular 21 and `npm audit` reports 0 vulnerabilities.
 
 It used to be on Angular 14, which is out of support. First I tried to patch
 only the flagged transitive packages with npm `overrides`, and that got the tree
@@ -119,26 +119,34 @@ from 79 flagged packages to 23. But the last 13 were the XSS advisories in
 `@angular/core`, `@angular/common` and `@angular/compiler` themselves, and for
 v14 there is no patch, so in the end the upgrade was the only way.
 
-The client is small, 812 lines, so the jump from 14 to 22 was mostly config:
+The client is small, 812 lines, so the jump was mostly config:
 
 - builder is `@angular/build:application` now, not
   `@angular-devkit/build-angular:browser`
 - `polyfills.ts` is gone, `zone.js` and `@angular/localize/init` are listed in
   `angular.json` instead
-- components declared in an NgModule need `standalone: false`, because since v19
-  standalone is the default
-- `platformBrowserDynamic()` became `platformBrowser()`
-- TypeScript 6 deprecates `baseUrl`, so the `src/app/...` imports were rewritten
-  to relative paths
+- the NgModules are gone, the components are standalone and `main.ts` uses
+  `bootstrapApplication` with `app.config.ts`
+- `provideZoneChangeDetection()` is set explicitly, because it is not implicit
+  any more and this app updates views from plain `subscribe` callbacks, not
+  signals
+- the `src/app/...` imports were rewritten to relative paths
 - karma is replaced by the new `ng test`, but there are no spec files anyway
 
-The app still uses NgModules, I did not convert it to standalone components.
-That is a bigger change and it was not needed for the upgrade. The cost is
-bundle size: it went from 507 kB to 628 kB, so the 500 kB budget warning is
-louder than before. Standalone components with zoneless change detection would
-bring it back down, that is the next step if it matters.
+### Why 21 and not 22
 
-Angular 22 needs Node `^22.22.3 || ^24.15.0 || >=26`, so compose and the
+I upgraded to 22 first, and the app built and booted but every table stayed
+empty. The requests returned 200 and the subscribe callbacks ran, only the views
+never re-rendered. Measured in the browser: `employeeList` had 5 items while the
+DOM had 0 rows, 1.5 seconds after the data arrived.
+
+That is [angular#69530](https://github.com/angular/angular/issues/69530), a
+change detection regression in 22 that is still open. It is not specific to
+NgModules, standalone components with `provideZoneChangeDetection()` behave the
+same. Angular 21 is not affected, has no advisories either, and is what the app
+runs on now. Worth retrying 22 once that issue is closed.
+
+Angular 21 needs Node `^20.19.0 || ^22.12.0 || >=24`, so compose and the
 Cloudflare pin are on Node 22, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
