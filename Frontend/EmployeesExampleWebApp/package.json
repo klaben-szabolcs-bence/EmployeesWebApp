@@ -92,6 +92,7 @@
     "ua-parser-js@^0.7.0": "^0.7.41",
     "webpack": "^5.109.2",
     "webpack-dev-middleware": "^5.3.4",
+    "webpack-dev-server": "^5.2.6",
     "websocket-driver": "^0.7.5",
     "ws": "^8.21.3",
     "yaml@^1.0.0": "^1.10.3"
