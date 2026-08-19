@@ -119,6 +119,19 @@ Three things that will otherwise cost an afternoon:
 - `src/_redirects` is already registered as a build asset. Without it every
   deep link 404s on refresh.
 
+The project also has build watch paths set, so a commit that only touches the
+API or the docs does not rebuild the frontend. Excludes, not includes, so a path
+I forget only costs a wasted build instead of a change that never deploys:
+
+```
+includes: *
+excludes: WebAPI/*, docs/*, deploy/*, *.sql, README.md
+```
+
+In Pages a single `*` also matches the path separator, so `WebAPI/*` covers any
+depth and there is no `**`. Render has the same thing under Build Filters, with
+the list inverted: it ignores `Frontend/**` and `docs/**`.
+
 ### 3. Close the loop
 
 Add `https://employees.klaben.hu` to the API as `Cors__AllowedOrigins__0` and
