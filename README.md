@@ -4,7 +4,7 @@ A staff directory with departments, employee records and photo uploads. Built
 to learn layered API design against a real relational schema — an ASP.NET Core
 Web API over MS-SQL, consumed by an Angular single-page client.
 
-**Live demo:** _(not deployed yet — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md))_
+**Live demo:** <https://employees.klaben.hu>
 > First request may take ~30 seconds — free-tier cold start.
 
 ![The employee list, with seeded demo data](docs/screenshot.png)

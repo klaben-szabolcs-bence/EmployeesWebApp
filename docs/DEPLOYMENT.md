@@ -185,11 +185,12 @@ not apply anymore, the project is on Angular 21.
 - [x] `grep -r "localhost" dist/` after a production build returns nothing
 - [x] `NODE_VERSION` pinned (`.node-version`, 22.23.2)
 - [x] Cold-start note in the README
-- [ ] Cloudflare root directory is `Frontend/EmployeesExampleWebApp`
-- [ ] `employees.klaben.hu` added as a custom domain on the Pages project
-- [ ] API deployed, `employees-api.klaben.hu` CNAME pointing at it
-- [ ] `Cors__AllowedOrigins__0` set to `https://employees.klaben.hu`
-- [ ] Live URL in the README and the repository's About sidebar
+- [x] Cloudflare root directory is `Frontend/EmployeesExampleWebApp`
+- [x] `employees.klaben.hu` added as a custom domain on the Pages project
+- [x] API deployed, `employees-api.klaben.hu` CNAME pointing at it
+- [x] `Cors__AllowedOrigins__0` set to `https://employees.klaben.hu`
+- [x] Live URL in the README
+- [ ] Live URL in the repository's About sidebar
 
 ## Verify before relying on this
 
