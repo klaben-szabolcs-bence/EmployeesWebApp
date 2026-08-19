@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Controllers.Models;
 using WebAPI.Data;
@@ -207,23 +208,51 @@ namespace WebAPI.Controllers
         /// </remarks>
         private static string? ResolveSafePhotoName(string clientFileName)
         {
-            // TODO(human): implement.
-            //
-            // Given an arbitrary attacker-controlled `clientFileName`, return a file
-            // name that is safe to Path.Combine with the photos directory, or null
-            // to reject it.
-            //
-            // Worth working out before you write it:
-            //   1. Why is stripping ".." not sufficient?
-            //   2. What does Path.Combine("/app/Photos", "/etc/passwd") return?
-            //      (It is not what most people expect, and it is a separate bug
-            //       from "..".)
-            //   3. Allow-list or deny-list for the extension? AllowedPhotoExtensions
-            //      is declared at the top of this class.
-            //
-            // The shape that works: do not trust any part of the client's name except
-            // (a validated) extension. Generate the rest yourself.
-            throw new NotImplementedException("ResolveSafePhotoName is not implemented yet.");
+            if (string.IsNullOrWhiteSpace(clientFileName))
+            {
+                return null;
+            }
+
+            // Take only the extension from the client, and only if it is on the
+            // allow-list. A deny-list would have to enumerate every dangerous
+            // extension; the allow-list enumerates the few safe ones, so anything
+            // unforeseen is rejected by default.
+            var extension = Path.GetExtension(clientFileName).ToLowerInvariant();
+            if (!AllowedPhotoExtensions.Contains(extension))
+            {
+                return null;
+            }
+
+            // A human-readable slug, purely so the file is recognisable on disk.
+            // Only ASCII letters and digits survive; every other character --
+            // including path separators, dots and Unicode -- is collapsed into a
+            // single dash, so the slug cannot smuggle a "../" or an absolute path
+            // through. The original name is otherwise discarded, not trusted.
+            var original = Path.GetFileNameWithoutExtension(clientFileName);
+            var slug = new StringBuilder(Math.Min(original.Length, 40));
+            foreach (var c in original)
+            {
+                if (char.IsAsciiLetterOrDigit(c))
+                {
+                    if (slug.Length >= 40) break;
+                    slug.Append(char.ToLowerInvariant(c));
+                }
+                else if (slug.Length > 0 && slug[^1] != '-' && slug.Length < 40)
+                {
+                    slug.Append('-');
+                }
+            }
+            var slugText = slug.ToString().Trim('-');
+
+            // The GUID is what actually makes the name safe and unique; the slug is
+            // decoration in front of it. This is also why the StartsWith check at the
+            // call site is defence in depth, not the primary guard -- the name we
+            // return here contains nothing the client controls except a vetted
+            // extension.
+            var unique = Guid.NewGuid().ToString("N");
+            return slugText.Length > 0
+                ? $"{slugText}-{unique}{extension}"
+                : $"{unique}{extension}";
         }
 
         /// <summary>
