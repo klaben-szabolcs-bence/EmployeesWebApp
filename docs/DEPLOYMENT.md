@@ -159,6 +159,71 @@ allow-list will not match. Either accept that previews cannot reach the API, or
 match them with a `SetIsOriginAllowed` predicate — but do not reach for
 `AllowAnyOrigin()` as the shortcut.
 
+## Monitoring
+
+`GET /api/health` returns the provider, row counts, photo count, version and
+uptime. Three states:
+
+| Status | HTTP | Meaning |
+|---|---|---|
+| `ok` | 200 | database answers, photos are there |
+| `degraded` | 200 | still serving, but the photos directory is empty or gone |
+| `unhealthy` | 503 | the database is unreachable |
+
+Only `unhealthy` is a 503. A monitor reads the status code and nothing else, so
+anything that can still serve has to stay 200 or it reports an outage that is not
+happening. `degraded` exists because photos and the database share one directory
+and are supposed to reset together. If the photos vanish while the rows are still
+there, that stopped being true, and this endpoint is the only thing that notices.
+
+The endpoint answers `HEAD` as well as `GET`. That is not decoration. The other
+actions are marked `[HttpGet]` only, so they answer 405 to a `HEAD`, and every
+uptime checker and badge service probes with `HEAD` first. shields.io reported
+this API as down while it was warm and serving 200s in about a tenth of a second.
+
+The response never contains the connection string, the photo path or exception
+text. A failed check is logged and answered with a generic message. The API is
+public and has no authentication.
+
+### Why nothing polls the API
+
+The dashboard cannot check the API directly, and neither can a badge.
+
+Measured on 20 August 2026: a cold start takes about 34 seconds, a warm request
+about a tenth of a second. Glance builds every widget request on a shared client
+with `Timeout: 5 * time.Second` (`internal/glance/widget-utils.go`), and the
+monitor widget uses that same client. The per site `timeout:` option only builds
+a context, and Go applies both, so the shorter one wins. Setting `timeout: 60s`
+still gives up after five seconds. There is no widget that can wait out a cold
+start.
+
+shields.io has the same problem plus a worse one. It sends `cache-control:
+max-age=120`, so a live badge is rechecked every two minutes by whoever opens the
+README, crawlers included. That is a keep-warm pinger driven by strangers, which
+is the one thing the free tier cannot afford. The API badge is static for that
+reason.
+
+So a job on my own machine fetches `/api/health` every 6 hours with a 90 second
+timeout and writes the JSON somewhere the dashboard can read instantly. Four
+wakes a day, each keeping the container up for its 15 minute idle window, is
+about 30 instance hours a month out of 750. Do not shorten that interval below
+15 minutes, at which point the container never sleeps again.
+
+Render's health check path is deliberately left empty for the same reason. There
+is an endpoint to point it at now, but a platform probing it on a schedule is the
+keep-warm problem again.
+
+### Traffic numbers
+
+Cloudflare already counts requests for `employees.klaben.hu` because it is
+proxied. No beacon and no app code needed. Two limits are worth knowing before
+building anything on it:
+
+- The free plan refuses any GraphQL analytics query wider than one day. Not just
+  short retention, it rejects the query. So the number is always "last 24 hours".
+- `employees-api.klaben.hu` is DNS only, so that Render can issue its own
+  certificate. Cloudflare never sees API traffic and cannot report on it.
+
 ## Running locally
 
 ### Containers
@@ -218,6 +283,8 @@ not apply anymore, the project is on Angular 21.
 - [x] `Cors__AllowedOrigins__0` set to `https://employees.klaben.hu`
 - [x] Live URL in the README
 - [X] Live URL in the repository's About sidebar
+- [x] `/api/health` answers `HEAD` as well as `GET`
+- [x] Render health check path left empty on purpose
 
 ## Verify before relying on this
 

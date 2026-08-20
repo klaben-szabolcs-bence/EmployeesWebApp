@@ -1,6 +1,7 @@
 using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json.Serialization;
 using WebAPI.Data;
+using WebAPI.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,7 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 builder.Services.AddSingleton<IStoragePaths, StoragePaths>();
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddSingleton<SqliteDatabaseInitializer>();
+builder.Services.AddSingleton<IAppInfo, AppInfo>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

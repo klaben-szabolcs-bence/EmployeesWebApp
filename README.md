@@ -1,5 +1,8 @@
 # Employee Directory
 
+[![demo](https://img.shields.io/website?url=https%3A%2F%2Femployees.klaben.hu&label=demo&up_message=up&down_message=down)](https://employees.klaben.hu)
+![api](https://img.shields.io/badge/api-sleeps%20when%20idle-lightgrey)
+
 A staff directory with departments, employee records and photo upload. I built
 it to learn layered API design against a real relational schema: an ASP.NET Core
 Web API over MS-SQL, with an Angular single page client.
@@ -25,7 +28,14 @@ so a second project can get its own one later. The client is built against
 `employees-api.klaben.hu`, not the Render URL, so the API can move to another
 host with a DNS change and the frontend does not need a rebuild.
 
-Details and the things that cost me time are in
+`GET /api/health` reports the database provider, the row counts, and how long
+the process has been up. A short uptime means you just woke it. It answers 200
+while it can serve and 503 only when the database is gone, so an uptime monitor
+can read the status code and ignore the body.
+
+The demo badge above is live. The API badge is not, on purpose, because checking
+it from outside would keep it awake and use up the free tier. That and the rest
+of the things that cost me time are in
 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## What is interesting here
