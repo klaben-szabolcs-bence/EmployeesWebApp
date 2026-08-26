@@ -169,10 +169,12 @@ still display. There are no primary keys, no `NOT NULL`, no uniqueness and no
 indexes anywhere. Everything is `varchar` rather than `nvarchar`, so Hungarian
 names do not round-trip.
 
-`schema.sqlite.sql`, written fresh for the demo, declares the keys and
-constraints the original lacks — the diff between the two files is the fix.
-Applying it to the MS-SQL schema would need a data migration to convert the
-name column into a `DepartmentId` reference.
+`schema.sqlite.sql`, written fresh for the demo, declares the primary keys,
+`NOT NULL` and the unique department name the original lacks. It does not
+remodel the relationship: `Employee.Department` is still the name as text, with
+an index on it. Converting it to a `DepartmentId` reference needs a data
+migration, and it has to happen on both schemas at once, because the controllers
+build one set of queries for both providers.
 
 ### Child components receive their parent as an `@Input()`
 

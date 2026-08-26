@@ -5,7 +5,7 @@
 --
 -- The SQLite equivalent used by the deployed demo is schema.sqlite.sql, which
 -- also declares the primary keys and constraints this one is missing. See
--- "What I'd do differently" in the README.
+-- "What I would do differently" in the README.
 
 CREATE DATABASE EmployeeDB
 GO

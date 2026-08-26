@@ -111,7 +111,10 @@ so this step does not wait for the API. Point Cloudflare Pages at the repository
 Three things that will otherwise cost an afternoon:
 
 - **Set the root directory precisely.** Pointing it at `Frontend` finds a
-  different, near-empty project and "succeeds" while producing nothing.
+  different, near-empty project and "succeeds" while producing nothing. Both the
+  folder name and `dist/employees-example-web-app` are pinned in the Pages
+  project, not in git, so renaming either means editing the dashboard in the
+  same change or the next build breaks.
 - **Pin the Node version explicitly.** The build image ignores `engines` in
   `package.json` and rejects codenames like `lts/hydrogen`. There is a
   `.node-version` file in the root directory now, which keeps the version in

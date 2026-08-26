@@ -56,10 +56,13 @@ meant replacing all fourteen calls.
 **The missing foreign key costs more than it looks.** `Employee.Department`
 stores a free text copy of the department *name*, not a reference to its id.
 Renaming a department orphans its employees, and deleting one leaves dangling
-strings that still render. [`schema.sql`](schema.sql) is the original,
-[`schema.sqlite.sql`](schema.sqlite.sql) was written fresh for the demo with the
-keys and constraints the original does not have. The diff between them is the
-fix.
+strings that still render. [`schema.sql`](schema.sql) is the original.
+[`schema.sqlite.sql`](schema.sqlite.sql) adds the primary keys, `NOT NULL` and
+the unique department name the original never declared, but it leaves the
+relationship alone: the department is still text there too, with an index on it.
+Fixing that properly means changing both schemas at once, because the queries
+are shared between the two providers, so it is on the list below rather than
+done.
 
 **Ephemeral data is a design choice here.** Free container filesystems reset on
 redeploy. Instead of fighting that, the database seeds itself on any boot where

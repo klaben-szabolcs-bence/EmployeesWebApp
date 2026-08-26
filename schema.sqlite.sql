@@ -1,9 +1,10 @@
 -- SQLite schema for the public demo.
 --
--- This is the same shape as schema.sql (MS-SQL) with the constraints the
--- original never declared: primary keys, NOT NULL, and a real foreign key from
--- Employee to Department. See "What I'd do differently" in the README for why
--- the original storing Department as free text is the schema's main flaw.
+-- Same shape as schema.sql (MS-SQL) with the constraints the original never
+-- declared: primary keys, NOT NULL and a unique department name.
+-- Employee.Department is still the free-text name, not a reference. See
+-- "What I would do differently" in the README for why that is the schema's
+-- main flaw and what remodelling it would cost.
 
 CREATE TABLE IF NOT EXISTS Department (
     DepartmentId   INTEGER PRIMARY KEY AUTOINCREMENT,
