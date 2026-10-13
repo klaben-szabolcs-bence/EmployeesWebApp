@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/Frontend/EmployeesExampleWebApp"
+    schedule:
+      interval: "weekly"
+    # Security updates only; set above 0 to also get routine version-update PRs.
+    open-pull-requests-limit: 0
+    groups:
+      # Angular packages pin each other's exact versions as peer dependencies,
+      # so they must always be bumped together.
+      angular:
+        applies-to: security-updates
+        patterns:
+          - "@angular/*"
+          - "@angular-devkit/*"
+          - "@schematics/angular"
