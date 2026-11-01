@@ -45,6 +45,8 @@ export class ShowDepartmentComponent implements OnInit {
     this.ActivateAddEditDepartmentComponent = true;
     this.modalService.open(content, { ariaLabelledBy: 'modal-add-department', size: 'xl', centered: true }).result.then((result) => {
       this.closeResult = `Closed with: ${result}`;
+    }, (reason) => {
+      this.closeResult = `Dismissed with: ${reason}`;
     }
     );
   }
@@ -77,6 +79,8 @@ export class ShowDepartmentComponent implements OnInit {
     this.ActivateAddEditDepartmentComponent = true;
     this.modalService.open(content, { ariaLabelledBy: 'modal-edit-department', size: 'xl', centered: true }).result.then((result) => {
       this.closeResult = `Closed with: ${result}`;
+    }, (reason) => {
+      this.closeResult = `Dismissed with: ${reason}`;
     }
     );
   }

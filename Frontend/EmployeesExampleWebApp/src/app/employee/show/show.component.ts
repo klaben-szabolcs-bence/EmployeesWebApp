@@ -41,10 +41,12 @@ export class ShowEmployeeComponent implements OnInit {
 
   onAdd(content: any) {
     this.employee = { EmployeeId: 0, EmployeeName: '', Department: '', DateOfJoining: '', PhotoFileName: 'anonymous.png' };
-    this.ModalTitle = 'Add Department';
+    this.ModalTitle = 'Add Employee';
     this.ActivateAddEditEmployeeComponent = true;
     this.modalService.open(content, { ariaLabelledBy: 'modal-add-employee', size: 'xl', centered: true }).result.then((result) => {
       this.closeResult = `Closed with: ${result}`;
+    }, (reason) => {
+      this.closeResult = `Dismissed with: ${reason}`;
     }
     );
   }
@@ -77,6 +79,8 @@ export class ShowEmployeeComponent implements OnInit {
     this.ActivateAddEditEmployeeComponent = true;
     this.modalService.open(content, { ariaLabelledBy: 'modal-edit-employee', size: 'xl', centered: true }).result.then((result) => {
       this.closeResult = `Closed with: ${result}`;
+    }, (reason) => {
+      this.closeResult = `Dismissed with: ${reason}`;
     }
     );
   }
